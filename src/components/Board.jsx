@@ -1,8 +1,10 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { ModulosProfesoresContext } from '../context/ModulosProfesoresContext'
 
-export function Board ({ modulos, setDraggedItemId, draggedItemId }) {
+export function Board () {
   const [positions, setPositions] = useState([])
+  const { modulos, draggedItemId, setDraggedItemId, draggedModulo, setModulos } = useContext(ModulosProfesoresContext)
 
   useEffect(() => {
     const positions = modulos.map((modulo) => {
@@ -13,7 +15,7 @@ export function Board ({ modulos, setDraggedItemId, draggedItemId }) {
       }
     })
     setPositions(positions)
-  }, [modulos])
+  }, [])
 
   const handleDragOver = (event) => {
     event.preventDefault()
@@ -21,24 +23,30 @@ export function Board ({ modulos, setDraggedItemId, draggedItemId }) {
 
   const handleDrop = (event) => {
     event.preventDefault()
-    const draggedItemRect = document.getElementById(draggedItemId).getBoundingClientRect()
-    const rect = event.target.getBoundingClientRect()
-    const x = (event.clientX - (draggedItemRect.width / 2)) - rect.left
-    const y = (event.clientY - (draggedItemRect.height / 2)) - rect.top
 
-    setPositions(prevPositions => {
-      const updatedPositions = prevPositions.map(position => {
-        if (position.id === draggedItemId) {
-          return {
-            ...position,
-            x,
-            y
+    if (!draggedModulo) {
+      const draggedItemRect = document.getElementById(draggedItemId).getBoundingClientRect()
+      const rect = event.target.getBoundingClientRect()
+      const x = (event.clientX - (draggedItemRect.width / 2)) - rect.left
+      const y = (event.clientY - (draggedItemRect.height / 2)) - rect.top
+
+      setPositions(prevPositions => {
+        const updatedPositions = prevPositions.map(position => {
+          if (position.id === draggedItemId) {
+            return {
+              ...position,
+              x,
+              y
+            }
           }
-        }
-        return position
+          return position
+        })
+        return updatedPositions
       })
-      return updatedPositions
-    })
+    } else {
+      const nuevosModulos = [...modulos, draggedModulo]
+      setModulos(nuevosModulos)
+    }
 
     setDraggedItemId(null)
   }
@@ -56,7 +64,7 @@ export function Board ({ modulos, setDraggedItemId, draggedItemId }) {
   )
 }
 
-const Modulo = ({ id, nombre, idRegimen, horasSemanales, color, setDraggedItemId, position }) => {
+const Modulo = ({ id, nombre, regimen, horasSemanales, color, setDraggedItemId, position }) => {
   const handleDragStart = (event) => {
     setDraggedItemId(parseInt(event.target.id))
   }
@@ -68,14 +76,14 @@ const Modulo = ({ id, nombre, idRegimen, horasSemanales, color, setDraggedItemId
   return (
     <div
       id={id.toString()} // Se establece el ID como el índice del módulo
-      className={`bg-[${color}] w-36 h-36 absolute cursor-grab active:cursor-grabbing`}
+      className='bg-yellow-300 w-36 h-36 absolute cursor-grab active:cursor-grabbing text-black'
       style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
       draggable='true'
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <h1>{nombre}</h1>
-      <p>{idRegimen}</p>
+      <p>{regimen}</p>
       <p>{horasSemanales}</p>
     </div>
   )
