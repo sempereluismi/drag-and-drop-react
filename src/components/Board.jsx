@@ -4,7 +4,7 @@ import { ModulosProfesoresContext } from '../context/ModulosProfesoresContext'
 
 export function Board () {
   const [positions, setPositions] = useState([])
-  const { modulos, draggedItemId, setDraggedItemId, draggedModulo, setModulos } = useContext(ModulosProfesoresContext)
+  const { modulos, setDraggedModulo, draggedModulo, setModulos, draggedFromBoard, profesores } = useContext(ModulosProfesoresContext)
 
   useEffect(() => {
     const positions = modulos.map((modulo) => {
@@ -24,15 +24,15 @@ export function Board () {
   const handleDrop = (event) => {
     event.preventDefault()
 
-    if (!draggedModulo) {
-      const draggedItemRect = document.getElementById(draggedItemId).getBoundingClientRect()
+    if (draggedFromBoard) {
+      const draggedItemRect = document.getElementById(draggedModulo.id).getBoundingClientRect()
       const rect = event.target.getBoundingClientRect()
       const x = (event.clientX - (draggedItemRect.width / 2)) - rect.left
       const y = (event.clientY - (draggedItemRect.height / 2)) - rect.top
 
       setPositions(prevPositions => {
         const updatedPositions = prevPositions.map(position => {
-          if (position.id === draggedItemId) {
+          if (position.id === draggedModulo.id) {
             return {
               ...position,
               x,
@@ -45,10 +45,13 @@ export function Board () {
       })
     } else {
       const nuevosModulos = [...modulos, draggedModulo]
+      profesores.map((profesor) => {
+        return (profesor.modulos = profesor.modulos.filter(modulo => modulo.id !== draggedModulo.id))
+      })
       setModulos(nuevosModulos)
     }
 
-    setDraggedItemId(null)
+    setDraggedModulo(null)
   }
 
   return (
@@ -56,7 +59,7 @@ export function Board () {
       <ul>
         {modulos.map((modulo) => {
           return (positions.length > 0 &&
-            <Modulo key={modulo.id} {...modulo} setDraggedItemId={setDraggedItemId} position={positions[modulo.id - 1]} />
+            <Modulo key={modulo.id} modulo={modulo} position={positions[modulo.id - 1]} />
           )
         })}
       </ul>
@@ -64,27 +67,31 @@ export function Board () {
   )
 }
 
-const Modulo = ({ id, nombre, regimen, horasSemanales, color, setDraggedItemId, position }) => {
+const Modulo = ({ modulo, position }) => {
+  const { setDraggedModulo, setDraggedFromBoard } = useContext(ModulosProfesoresContext)
+
   const handleDragStart = (event) => {
-    setDraggedItemId(parseInt(event.target.id))
+    setDraggedModulo(modulo)
+    setDraggedFromBoard(true)
   }
 
   const handleDragEnd = () => {
-    setDraggedItemId(null)
+    setDraggedModulo(null)
+    setDraggedFromBoard(false)
   }
 
   return (
     <div
-      id={id.toString()} // Se establece el ID como el índice del módulo
-      className='bg-yellow-300 w-36 h-36 absolute cursor-grab active:cursor-grabbing text-black'
-      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      id={modulo.id.toString()} // Se establece el ID como el índice del módulo
+      className='w-36 h-36 absolute cursor-grab active:cursor-grabbing text-black'
+      style={{ transform: `translate(${position.x}px, ${position.y}px)`, backgroundColor: modulo.color }}
       draggable='true'
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <h1>{nombre}</h1>
-      <p>{regimen}</p>
-      <p>{horasSemanales}</p>
+      <h1>{modulo.nombre}</h1>
+      <p>{modulo.regimen}</p>
+      <p>{modulo.horasSemanales}</p>
     </div>
   )
 }

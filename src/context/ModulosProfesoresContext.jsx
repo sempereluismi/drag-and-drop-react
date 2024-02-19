@@ -9,18 +9,21 @@ export const ModulosProfesoresContext = createContext()
 export function ModulosProfesoresProvider ({ children }) {
   const [modulos, setModulos] = useState(modulosMook)
   const [profesores, setProfesores] = useState(profesoresMook)
-  const [draggedItemId, setDraggedItemId] = useState(null)
   const [draggedModulo, setDraggedModulo] = useState(null)
+  const [draggedProfesor, setDraggedProfesor] = useState(null)
+  const [draggedFromBoard, setDraggedFromBoard] = useState(false)
 
   const contextValue = {
     modulos,
     setModulos,
     profesores,
     setProfesores,
-    draggedItemId,
-    setDraggedItemId,
     draggedModulo,
-    setDraggedModulo
+    setDraggedModulo,
+    draggedFromBoard,
+    setDraggedFromBoard,
+    draggedProfesor,
+    setDraggedProfesor
   }
 
   return (
